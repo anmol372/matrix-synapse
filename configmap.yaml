@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: matrix-synapse-config
+  labels:
+    app.kubernetes.io/name: matrix-synapse
+    app.kubernetes.io/instance: canary
+data:
+  homeserver.yaml: |
+    enable_registration: true
+    server_name: "my.matrix.host"
+    pid_file: /data/homeserver.pid
+    use_presence: true
+
+    federation_ip_range_blacklist:
+        - '127.0.0.0/8'
+        - '10.0.0.0/8'
+        - '172.16.0.0/12'
+        - '192.168.0.0/16'
+        - '100.64.0.0/10'
+        - '169.254.0.0/16'
+        - '::1/128'
+        - 'fe80::/64'
+        - 'fc00::/7'
+
+    listeners:
+      - port: 8008
+        tls: false
+        type: http
+        x_forwarded: true
+
+        resources:
+          - names: [client, federation]
+            compress: false
+            
+    acme:
+      enabled: false
+      port: 80
+      bind_addresses: ['::', '0.0.0.0']
+      reprovision_threshold: 30
+
+      domain: matrix.example.com
+      account_key_file: /data/acme_account.key
+    
+    database:
+      name: sqlite3
+      args:
+        database: /data/homeserver.db
+
+    log_config: "/data/my.matrix.host.log.config"
+
+    media_store_path: "/data/media_store"
+        
+    allow_guest_access: true
+
+    suppress_key_server_warning: true
+    
+
+  my.matrix.host.log.config: |
+    version: 1
+
+    formatters:
+      precise:
+        format: '%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(request)s - %(message)s'
+
+    filters:
+      context:
+        (): synapse.util.logcontext.LoggingContextFilter
+        request: ""
+
+    handlers:
+      console:
+        class: logging.StreamHandler
+        formatter: precise
+        filters: [context]
+
+    loggers:
+      synapse:
+        level: WARNING
+
+      synapse.storage.SQL:
+        level: WARNING
+
+    root:
+      level: WARNING
+      handlers: [console]

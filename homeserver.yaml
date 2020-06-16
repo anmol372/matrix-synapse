@@ -1,0 +1,212 @@
+# Configuration file for Synapse.
+#
+# This is a YAML file: see [1] for a quick introduction. Note in particular
+# that *indentation is important*: all the elements of a list or dictionary
+# should have the same indentation.
+#
+# [1] https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
+
+## enable registration ##
+enable_registration: true
+
+server_name: "my.matrix.host"
+
+pid_file: /data/homeserver.pid
+
+use_presence: true
+
+##TODO:
+#initially federation is disabled, 
+# once enabled this option may be set true if publicrooms need to be allowed
+#
+
+#allow_public_rooms_over_federation: true
+
+# Prevent federation requests from being sent to the following
+# blacklist IP address CIDR ranges. If this option is not specified, or
+# specified with an empty list, no ip range blacklist will be enforced.
+#
+# As of Synapse v1.4.0 this option also affects any outbound requests to identity
+# servers provided by user input.
+#
+# (0.0.0.0 and :: are always blacklisted, whether or not they are explicitly
+# listed here, since they correspond to unroutable addresses.)
+#
+federation_ip_range_blacklist:
+    - '127.0.0.0/8'
+    - '10.0.0.0/8'
+    - '172.16.0.0/12'
+    - '192.168.0.0/16'
+    - '100.64.0.0/10'
+    - '169.254.0.0/16'
+    - '::1/128'
+    - 'fe80::/64'
+    - 'fc00::/7'
+
+# List of ports that Synapse should listen on, their purpose and their
+# configuration.
+#
+# Options for each listener include:
+#
+#   port: the TCP port to bind to
+#
+#   bind_addresses: a list of local addresses to listen on. The default is
+#       'all local interfaces'.
+#
+#   type: the type of listener. Normally 'http', but other valid options are:
+#       'manhole' (see docs/manhole.md),
+#       'metrics' (see docs/metrics-howto.md),
+#       'replication' (see docs/workers.md).
+#
+#   tls: set to true to enable TLS for this listener. Will use the TLS
+#       key/cert specified in tls_private_key_path / tls_certificate_path.
+#
+#   x_forwarded: Only valid for an 'http' listener. Set to true to use the
+#       X-Forwarded-For header as the client IP. Useful when Synapse is
+#       behind a reverse-proxy.
+#
+#   resources: Only valid for an 'http' listener. A list of resources to host
+#       on this port. Options for each resource are:
+#
+#       names: a list of names of HTTP resources. See below for a list of
+#           valid resource names.
+#
+#       compress: set to true to enable HTTP comression for this resource.
+#
+#   additional_resources: Only valid for an 'http' listener. A map of
+#        additional endpoints which should be loaded via dynamic modules.
+#
+# Valid resource names are:
+#
+#   client: the client-server API (/_matrix/client), and the synapse admin
+#       API (/_synapse/admin). Also implies 'media' and 'static'.
+#
+#   consent: user consent forms (/_matrix/consent). See
+#       docs/consent_tracking.md.
+#
+#   federation: the server-server API (/_matrix/federation). Also implies
+#       'media', 'keys', 'openid'
+#
+#   keys: the key discovery API (/_matrix/keys).
+#
+#   media: the media API (/_matrix/media).
+#
+#   metrics: the metrics interface. See docs/metrics-howto.md.
+#
+#   openid: OpenID authentication.
+#
+#   replication: the HTTP replication API (/_synapse/replication). See
+#       docs/workers.md.
+#
+#   static: static resources under synapse/static (/_matrix/static). (Mostly
+#       useful for 'fallback authentication'.)
+#
+#   webclient: A web client. Requires web_client_location to be set.
+#
+listeners:
+    # TLS-enabled listener: for when matrix traffic is sent directly to synapse.
+    #
+    # Disabled by default. To enable it, uncomment the following. (Note that you
+    # will also need to give Synapse a TLS key and certificate: see the TLS section
+    # below.)
+    #
+    #- port: 8448
+    #  type: http
+    #  tls: true
+    #  resources:
+    #    - names: [client, federation]
+  
+    # Unsecure HTTP listener: for when matrix traffic passes through a reverse proxy
+    # that unwraps TLS.
+    #
+    # If you plan to use a reverse proxy, please see
+    # https://github.com/matrix-org/synapse/blob/master/docs/reverse_proxy.md.
+    #
+    - port: 8008
+      tls: false
+      type: http
+      x_forwarded: true
+  
+      resources:
+        - names: [client, federation]
+          compress: false
+  
+      # example additional_resources:
+      #
+      #additional_resources:
+      #  "/_matrix/my/custom/endpoint":
+      #    module: my_module.CustomRequestHandler
+      #    config: {}
+  
+acme:
+    # ACME support is disabled by default. Set this to `true` and uncomment
+    # tls_certificate_path and tls_private_key_path above to enable it.
+    #
+    enabled: false
+
+    # Endpoint to use to request certificates. If you only want to test,
+    # use Let's Encrypt's staging url:
+    #     https://acme-staging.api.letsencrypt.org/directory
+    #
+    #url: https://acme-v01.api.letsencrypt.org/directory
+
+    # Port number to listen on for the HTTP-01 challenge. Change this if
+    # you are forwarding connections through Apache/Nginx/etc.
+    #
+    port: 80
+
+    # Local addresses to listen on for incoming connections.
+    # Again, you may want to change this if you are forwarding connections
+    # through Apache/Nginx/etc.
+    #
+    bind_addresses: ['::', '0.0.0.0']
+
+    # How many days remaining on a certificate before it is renewed.
+    #
+    reprovision_threshold: 30
+
+    # The domain that the certificate should be for. Normally this
+    # should be the same as your Matrix domain (i.e., 'server_name'), but,
+    # by putting a file at 'https://<server_name>/.well-known/matrix/server',
+    # you can delegate incoming traffic to another server. If you do that,
+    # you should give the target of the delegation here.
+    #
+    # For example: if your 'server_name' is 'example.com', but
+    # 'https://example.com/.well-known/matrix/server' delegates to
+    # 'matrix.example.com', you should put 'matrix.example.com' here.
+    #
+    # If not set, defaults to your 'server_name'.
+    #
+    domain: matrix.example.com
+
+    # file to use for the account key. This will be generated if it doesn't
+    # exist.
+    #
+    # If unspecified, we will use /synapse/conf/client.key.
+    #
+    account_key_file: /data/acme_account.key
+
+## Database ##
+##TODO: figure out how to use a postgres deployment
+
+
+database:
+    name: sqlite3
+    args:
+      database: /data/homeserver.db
+
+
+## Logging ##
+
+# A yaml python logging config file as described by
+# https://docs.python.org/3.7/library/logging.config.html#configuration-dictionary-schema
+#
+
+##TODO: would need to be configurable
+log_config: "/data/my.matrix.host.log.config"
+
+media_store_path: "/data/media_store"
+
+allow_guest_access: true
+
+suppress_key_server_warning: true

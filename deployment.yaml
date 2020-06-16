@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matrix-synapse
+  labels:
+    app.kubernetes.io/name: matrix-synapse
+    #app.kubernetes.io/version: "0.0.1"
+    app.kubernetes.io/instance: canary
+    #app.kubernetes.io/managed-by: manual
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: matrix-synapse
+      app.kubernetes.io/instance: canary
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+       # restart-pods-when-configmap-updates-in-kubernetes
+       # https://stackoverflow.com/questions/37317003/restart-pods-when-configmap-updates-in-kubernetes
+      annotations:
+        #checksum/config: only works in helm managed deployments
+      labels:
+        app.kubernetes.io/name: matrix-synapse
+        app.kubernetes.io/instance: canary
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      # generate signing key only on fresh install
+      ## do with kustomize??
+      initContainers:
+        - name: generate-signing-key
+          image: matrixdotorg/synapse:v1.15.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SYNAPSE_SERVER_NAME
+              value: "my.matrix.host"
+            - name: SYNAPSE_REPORT_STATS
+              value: "yes"
+          command: ["python"]
+          args:
+            - "-m"
+            - "synapse.app.homeserver"
+            - "--config-path"
+            - "/data/homeserver.yaml"
+            - "--keys-directory"
+            - "/data/keys"
+            - "--generate-keys"
+          volumeMounts:
+            - name: synapse-config
+              mountPath: /data
+            - name: signing-key
+              mountPath: /data/keys
+      containers:
+        - name: "synapse"
+          image: matrixdotorg/synapse:v1.15.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: UID
+              value: "1000"
+            - name: GID
+              value: "1000"
+          ports:
+            - name: http
+              containerPort: 8008
+              protocol: TCP
+          volumeMounts:
+            - name: synapse-config
+              mountPath: /data
+            - name: signing-key
+              mountPath: /data/keys
+            - name: media-store
+              mountPath: /data/media_store
+            - name: uploads
+              mountPath: /data/uploads
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            httpGet:
+              path: /_matrix/static/
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /_matrix/static/
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /_matrix/static/
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 10
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: synapse-config
+          configMap:
+            name: matrix-synapse-config
+        - name: signing-key
+          persistentVolumeClaim:
+            claimName: matrix-signing-key
+        - name: media-store
+          persistentVolumeClaim:
+            claimName: matrix-media-store
+        - name: uploads
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: matrix-synapse
+  labels:
+    app.kubernetes.io/name: matrix-synapse
+    app.kubernetes.io/instance: canary
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: matrix-synapse
+      app.kubernetes.io/instance: canary
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              matrix-chart/allow-synapse-access: allow
+              app.kubernetes.io/instance: canary
+      ports:
+        - port: http
+          protocol: TCP

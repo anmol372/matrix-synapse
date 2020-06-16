@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: matrix-signing-key
+  labels:
+    app.kubernetes.io/name: matrix-synapse
+    app.kubernetes.io/instance: canary
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Mi
