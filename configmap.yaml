@@ -55,6 +55,10 @@ data:
 
     suppress_key_server_warning: true
     
+    report_stats: true
+
+    signing_key_path: /data/keys/{{ SYNAPSE_SERVER_NAME }}.signing.key"
+    
 
   my.matrix.host.log.config: |
     version: 1
