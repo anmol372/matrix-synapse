@@ -42,10 +42,22 @@ data:
       domain: matrix.example.com
       account_key_file: /data/acme_account.key
     
+    #database:
+     # name: sqlite3
+     # args:
+      #  database: /data/homeserver.db
     database:
-      name: sqlite3
+        # The database engine name
+      name: "psycopg2"
+        # Arguments to pass to the engine
       args:
-        database: /data/homeserver.db
+        user: matrix
+        password: matrix
+        database: matrix
+            
+        host: "postgres.default.svc.cluster.local"
+        #hostaddr: "10.104.249.73"
+        port: "5432"
 
     log_config: "/data/my.matrix.host.log.config"
 
@@ -54,10 +66,13 @@ data:
     allow_guest_access: true
 
     suppress_key_server_warning: true
-    
+
     report_stats: true
 
-    signing_key_path: /data/keys/{{ SYNAPSE_SERVER_NAME }}.signing.key"
+    macaroon_secret_key: "^2UyGuTR+zNVp1zNV~z9uMgkLV*+RDCXCPAYwl#KQ0Bz+qN9j^"
+    form_secret: ":AdNU=&jKRU&u^+F9,6@E+GansKwHMK_g_QSCA=7cQ0eOR4iU7"    
+    signing_key_path: /data/keys/my.matrix.host.signing.key"
+    
     
 
   my.matrix.host.log.config: |

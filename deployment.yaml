@@ -33,7 +33,7 @@ spec:
       ## do with kustomize??
       initContainers:
         - name: generate-signing-key
-          image: matrixdotorg/synapse:v1.15.0
+          image: matrixdotorg/synapse:latest
           imagePullPolicy: IfNotPresent
           env:
             - name: SYNAPSE_SERVER_NAME
@@ -49,14 +49,15 @@ spec:
             - "--keys-directory"
             - "/data/keys"
             - "--generate-keys"
+            - "--generate-missing-configs"
           volumeMounts:
             - name: synapse-config
               mountPath: /data
             - name: signing-key
               mountPath: /data/keys
       containers:
-        - name: "synapse"
-          image: matrixdotorg/synapse:v1.15.0
+        - name: "synapse-matrix"
+          image: matrixdotorg/synapse:latest
           imagePullPolicy: IfNotPresent
           env:
             - name: UID
