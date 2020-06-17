@@ -39,7 +39,7 @@ spec:
             - name: SYNAPSE_SERVER_NAME
               value: "my.matrix.host"
             - name: SYNAPSE_REPORT_STATS
-              value: "yes"
+              value: "true"
           command: ["python"]
           args:
             - "-m"
@@ -78,25 +78,25 @@ spec:
               mountPath: /data/uploads
             - name: tmp
               mountPath: /tmp
-          readinessProbe:
-            httpGet:
-              path: /_matrix/static/
-              port: http
-            timeoutSeconds: 5
-            periodSeconds: 10
-          startupProbe:
-            httpGet:
-              path: /_matrix/static/
-              port: http
-            timeoutSeconds: 5
-            periodSeconds: 5
-            failureThreshold: 6
-          livenessProbe:
-            httpGet:
-              path: /_matrix/static/
-              port: http
-            timeoutSeconds: 5
-            periodSeconds: 10
+          #readinessProbe:
+          #  httpGet:
+          #    path: /_matrix/static/
+          #    port: http
+          #  timeoutSeconds: 5
+          #  periodSeconds: 10
+          #startupProbe:
+          #  httpGet:
+          #    path: /_matrix/static/
+          #    port: http
+          #  timeoutSeconds: 5
+          #  periodSeconds: 5
+          #  failureThreshold: 6
+          #livenessProbe:
+          #  httpGet:
+          #    path: /_matrix/static/
+          #    port: http
+          #  timeoutSeconds: 5
+          #  periodSeconds: 10
           securityContext:
             capabilities:
               drop:
