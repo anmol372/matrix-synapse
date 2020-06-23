@@ -5,6 +5,8 @@ metadata:
   labels:
     app.kubernetes.io/name: matrix-synapse
     app.kubernetes.io/instance: canary
+#        - '127.0.0.0/8'
+#        - '10.0.0.0/8'
 data:
   homeserver.yaml: |
     enable_registration: true
@@ -13,8 +15,6 @@ data:
     use_presence: true
 
     federation_ip_range_blacklist:
-        - '127.0.0.0/8'
-        - '10.0.0.0/8'
         - '172.16.0.0/12'
         - '192.168.0.0/16'
         - '100.64.0.0/10'
@@ -66,6 +66,8 @@ data:
     allow_guest_access: true
 
     suppress_key_server_warning: true
+
+    allow_public_rooms_over_federation: true
 
     report_stats: true
 

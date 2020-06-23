@@ -5,17 +5,43 @@ metadata:
   labels:
     app: postgres
 data:
-  POSTGRES_DB: matrix
-  POSTGRES_USER: matrix
-  POSTGRES_PASSWORD: matrix
-  matrix.sql: |
-    CREATE USER matrix
-      LOGIN
-      ENCRYPTED PASSWORD matrix
+  #POSTGRES_DB: matrix
+  #POSTGRES_USER: matrix
+  #POSTGRES_PASSWORD: matrix
+#  matrix.sql: |
+#    CREATE USER matrix1
+#      LOGIN
+#      ENCRYPTED PASSWORD matrix1
+#
+#    CREATE DATABASE matrix1
+#      ENCODING 'UTF8'
+#      LC_COLLATE='C'
+#      LC_CTYPE='C'
+#      template=template0
+#      OWNER matrix1
+#   GRANT ALL PRIVILEGES ON DATABASE matrix1 TO matrix1
 
-    CREATE DATABASE matrix
-    ENCODING 'UTF8'
-    LC_COLLATE='C'
-    LC_CTYPE='C'
-    template=template0
-    OWNER matrix
+#          CREATE USER matrix WITH PASSWORD 'matrix';
+
+  init-db.sh: |
+    #!/usr/bin/env bash
+    set -e
+    
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+            CREATE USER matrix WITH PASSWORD 'matrix';
+            CREATE DATABASE matrix
+             ENCODING 'UTF8'
+             LC_COLLATE='C'
+             LC_CTYPE='C'
+             template=template0
+             OWNER matrix;
+            GRANT ALL PRIVILEGES ON DATABASE matrix TO matrix;
+            CREATE USER matrix1 WITH PASSWORD 'matrix1';
+            CREATE DATABASE matrix1
+             ENCODING 'UTF8'
+             LC_COLLATE='C'
+             LC_CTYPE='C'
+             template=template0
+             OWNER matrix1;
+            GRANT ALL PRIVILEGES ON DATABASE matrix1 TO matrix1;
+    EOSQL
